@@ -1,0 +1,6 @@
+name: BungeeWhitelist
+version: @version@
+authors:
+  - snowbud56
+  - dalbodeule
+main: com.snowbud56.bungeewhitelist.BungeeWhitelist
