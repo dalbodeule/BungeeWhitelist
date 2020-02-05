@@ -9,7 +9,7 @@ object Config: ConfigBase<ConfigData>(
 )
 
 data class ConfigData (
-    var prefix: String = "&9&lWhitelist &8>> &7",
+    var prefix: String = "&9&l[Whitelist]&r",
     var messageColor: String = "&7",
     var valueColor: String = "&c",
     var kickMessage: String = "&fYou are not whitelisted!",

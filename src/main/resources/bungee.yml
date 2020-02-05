@@ -1,6 +1,16 @@
 name: BungeeWhitelist
 version: @version@
+main: com.snowbud56.bungeewhitelist.BungeeWhitelist
+depend:
+  - PCGF_PluginLib
 authors:
   - snowbud56
   - dalbodeule
-main: com.snowbud56.bungeewhitelist.BungeeWhitelist
+commands:
+  bungeewhitelist:
+    alias:
+      - whitelist
+      - wl
+permissions:
+  bungeewhitelist.use:
+    default: op

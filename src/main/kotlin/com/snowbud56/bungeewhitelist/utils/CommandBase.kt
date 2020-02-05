@@ -10,8 +10,8 @@ open class CommandBase (
     open val SubCommands: Map<String, SubCommand> = listOf<SubCommand>().associateBy { it.name },
     open val commandName: String,
     open val permissions: String?,
-    open val alias: Array<String>
-) : Command(commandName, permissions), TabExecutor {
+    open val alias: Array<String>?
+) : Command(commandName, permissions, *(alias ?: arrayOf())), TabExecutor {
 
     override fun execute(sender: CommandSender?, args: Array<out String>?) {
         if (sender != null && args != null) {
@@ -39,7 +39,7 @@ open class CommandBase (
     }
 
     internal fun sendMessage(sender: CommandSender, msg: String) {
-        val message = TextComponent(msg)
+        val message = TextComponent(msg.getColored)
         sender.sendMessage(message)
     }
 }
