@@ -4,33 +4,29 @@ import com.snowbud56.bungeewhitelist.utils.getTarget
 import com.snowbud56.bungeewhitelist.utils.parseJSON
 import com.snowbud56.bungeewhitelist.utils.serializeJSON
 import java.nio.file.Files
-import java.nio.file.Path
 
-object Whitelist {
-    private var data: MutableMap<String, MutableList<String>> = mutableMapOf()
-    private val target: Path = getTarget("whitelist.json")
+object UUIDCache {
+    private var data: MutableMap<String, String> = mutableMapOf()
+    private val target = getTarget("UUIDCache.json")
 
-    internal fun getServer(server: String): MutableList<String> {
-        if (!data.containsKey(server)) {
-            data[server] = mutableListOf()
-        }
-
-        return data[server]!!
-    }
-
-    internal fun contains(server: String, uuid: String): Boolean {
-        return getServer(server).contains(uuid)
-    }
-
-    internal fun add(server: String, uuid: String, name: String): Boolean {
-        getServer(server).add(uuid)
-        UUIDCache.addOrRename(uuid, name)
+    internal fun addOrRename(uuid: String, nick: String): Boolean {
+        data[uuid] = nick.toLowerCase()
 
         return true
     }
 
-    internal fun remove(server: String, uuid: String): Boolean {
-        return getServer(server).remove(uuid)
+    internal fun get(uuid: String): String? {
+        return data[uuid]
+    }
+
+    internal fun remove(uuid: String): Boolean {
+        data.remove(uuid)
+
+        return true
+    }
+
+    internal fun getFromName(name: String): String? {
+        return data.filterValues { it == name }.keys.firstOrNull()
     }
 
     internal fun load() {

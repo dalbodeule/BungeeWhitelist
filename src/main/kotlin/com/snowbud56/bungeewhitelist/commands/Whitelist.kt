@@ -6,6 +6,7 @@ import com.snowbud56.bungeewhitelist.commands.Whitelist.messageColor
 import com.snowbud56.bungeewhitelist.commands.Whitelist.prefix
 import com.snowbud56.bungeewhitelist.commands.Whitelist.valueColor
 import com.snowbud56.bungeewhitelist.config.Config
+import com.snowbud56.bungeewhitelist.config.UUIDCache
 import com.snowbud56.bungeewhitelist.config.Whitelist
 import net.md_5.bungee.api.CommandSender
 import com.snowbud56.bungeewhitelist.utils.CommandBase
@@ -96,9 +97,9 @@ object Whitelist: CommandBase(
                 if (args.size == 1) {
                     sendMessage(sender, "$prefix$messageColor Whitelist Status:")
                     sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.globalEnabled}")
-                    sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.config["__global__"]?.size ?: 0}):")
-                    Whitelist.config["__global__"]?.forEach {
-                        sendMessage(sender, "$valueColor- ${UUIDConverter.getNameFromUUID(it)} ($it)")
+                    sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.getServer("__global__").size}):")
+                    Whitelist.getServer("__global__").forEach {
+                        sendMessage(sender, "$valueColor- ${UUIDCache.get(it)} (${it})")
                     }
                 } else {
                     val server = instance.proxy.getServerInfo(args[1]).name
@@ -107,9 +108,9 @@ object Whitelist: CommandBase(
                     } else {
                         sendMessage(sender, "$prefix$messageColor Whitelist Status for $valueColor$server$messageColor:")
                         sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.serverEnabled[server]?: false}")
-                        sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.config[server]?.size ?: 0}):")
-                        Whitelist.config[server]?.forEach {
-                            sendMessage(sender, "$valueColor- ${UUIDConverter.getNameFromUUID(it)} ($it)")
+                        sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.getServer(server).size}):")
+                        Whitelist.getServer(server).forEach {
+                            sendMessage(sender, "$valueColor- ${UUIDCache.get(it)} (${it})")
                         }
                     }
                 }
@@ -146,9 +147,8 @@ object Whitelist: CommandBase(
                         }
 
                         if (uuid != null) {
-                            if (Whitelist.config["__global__"]?.contains(uuid) != true) {
-                                Whitelist.config["__global__"]?.add(uuid) ?: mutableListOf(uuid)
-                                Whitelist.save()
+                            if (!Whitelist.contains("__global__", uuid)) {
+                                Whitelist.add("__global__", uuid, args[1])
                                 sendMessage(
                                     sender,
                                     "$prefix$messageColor Added $valueColor${args[1]} ($uuid)$messageColor to the global whitelist!"
@@ -157,7 +157,7 @@ object Whitelist: CommandBase(
                                 sendMessage(sender,"$prefix$valueColor${args[1]} ($uuid)$messageColor is already added user!")
                             }
                         } else {
-                            sendMessage(sender,"$prefix$valueColor${args[1]} $messageColor is not valid user!")
+                            sendMessage(sender,"$prefix$valueColor ${args[1]}$messageColor is not valid user!")
                         }
                     }
                     else -> {
@@ -169,9 +169,8 @@ object Whitelist: CommandBase(
                         }
 
                         if (uuid != null) {
-                            if (Whitelist.config[server]?.contains(uuid) != true) {
-                                Whitelist.config[server]?.add(uuid) ?: mutableListOf(uuid)
-                                Whitelist.save()
+                            if (!Whitelist.contains(server, uuid)) {
+                                Whitelist.add(server, uuid, args[1])
                                 sendMessage(
                                     sender,
                                     "$prefix$messageColor Added $valueColor${args[1]} ($uuid)$messageColor to the $valueColor$server$messageColor whitelist!"
@@ -180,7 +179,7 @@ object Whitelist: CommandBase(
                                 sendMessage(sender,"$prefix$valueColor${args[1]} ($uuid)$messageColor is already added user!")
                             }
                         } else {
-                            sendMessage(sender,"$prefix$valueColor${args[1]} $messageColor is not valid user!")
+                            sendMessage(sender,"$prefix$valueColor ${args[1]}$messageColor is not valid user!")
                         }
                     }
                 }
@@ -215,12 +214,15 @@ object Whitelist: CommandBase(
                         return false
                     }
                     2 -> {
-                        val uuid = UUIDConverter.getUUIDFromName(args[1], true, true, true)
-                        if (Whitelist.config["__global__"]?.contains(uuid) == true) {
-                            sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
-                        } else {
-                            Whitelist.config["__global__"]!!.remove(uuid)
-                            sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor to the global whitelist!")
+                        val uuid = UUIDCache.getFromName(args[1])
+                        when {
+                            uuid == null || !Whitelist.contains("__global__", uuid) -> {
+                                sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
+                            }
+                            else -> {
+                                Whitelist.remove("__global__", uuid)
+                                sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor to the global whitelist!")
+                            }
                         }
                     }
                     else -> {
@@ -228,12 +230,15 @@ object Whitelist: CommandBase(
                         if (server == null) {
                             sendMessage(sender, "$prefix$messageColor That isn't a server on the network!")
                         } else {
-                            val uuid = UUIDConverter.getUUIDFromName(args[1], true, true, true)
-                            if (Whitelist.config[server]?.contains(uuid) == true) {
-                                sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
-                            } else {
-                                Whitelist.config[server]!!.remove(uuid)
-                                sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor from the $valueColor$server$messageColor whitelist!")
+                            val uuid = UUIDCache.getFromName(args[1])
+                            when {
+                                uuid == null || !Whitelist.contains(server, uuid) -> {
+                                    sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
+                                }
+                                else -> {
+                                    Whitelist.remove(server, uuid)
+                                    sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor from the $valueColor$server$messageColor whitelist!")
+                                }
                             }
                         }
                     }
