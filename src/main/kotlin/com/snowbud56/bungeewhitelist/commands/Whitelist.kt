@@ -147,7 +147,7 @@ object Whitelist: CommandBase(
 
                         if (uuid != null) {
                             if (Whitelist.config["__global__"]?.contains(uuid) != true) {
-                                Whitelist.config["__global__"]?.let { it.add(uuid) } ?: mutableListOf(uuid)
+                                Whitelist.config["__global__"]?.add(uuid) ?: mutableListOf(uuid)
                                 Whitelist.save()
                                 sendMessage(
                                     sender,
@@ -170,7 +170,7 @@ object Whitelist: CommandBase(
 
                         if (uuid != null) {
                             if (Whitelist.config[server]?.contains(uuid) != true) {
-                                Whitelist.config[server]?.let { it.add(uuid) } ?: mutableListOf(uuid)
+                                Whitelist.config[server]?.add(uuid) ?: mutableListOf(uuid)
                                 Whitelist.save()
                                 sendMessage(
                                     sender,
@@ -216,7 +216,7 @@ object Whitelist: CommandBase(
                     }
                     2 -> {
                         val uuid = UUIDConverter.getUUIDFromName(args[1], true, true, true)
-                        if (!Whitelist.config["__global__"]!!.contains(uuid)) {
+                        if (Whitelist.config["__global__"]?.contains(uuid) == true) {
                             sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
                         } else {
                             Whitelist.config["__global__"]!!.remove(uuid)
@@ -229,7 +229,7 @@ object Whitelist: CommandBase(
                             sendMessage(sender, "$prefix$messageColor That isn't a server on the network!")
                         } else {
                             val uuid = UUIDConverter.getUUIDFromName(args[1], true, true, true)
-                            if (!Whitelist.config["__global__"]!!.contains(uuid)) {
+                            if (Whitelist.config[server]?.contains(uuid) == true) {
                                 sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
                             } else {
                                 Whitelist.config[server]!!.remove(uuid)
