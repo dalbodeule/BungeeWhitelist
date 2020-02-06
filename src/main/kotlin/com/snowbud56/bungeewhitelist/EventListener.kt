@@ -9,10 +9,11 @@ import net.md_5.bungee.api.event.LoginEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
+import net.md_5.bungee.event.EventPriority
 
 object EventListener : Listener {
-    @EventHandler
-    fun onServerJoin(e: ServerConnectEvent) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    internal fun onServerJoin(e: ServerConnectEvent) {
         val p = e.player
         val server = e.target.name
 
@@ -25,8 +26,8 @@ object EventListener : Listener {
         }
     }
 
-    @EventHandler
-    fun onNetworkJoin(e: LoginEvent) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    internal fun onNetworkJoin(e: LoginEvent) {
         val p: PendingConnection = e.connection
         if (
             Config.config.globalEnabled &&

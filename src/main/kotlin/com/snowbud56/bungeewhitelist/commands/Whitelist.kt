@@ -59,7 +59,7 @@ object Whitelist: CommandBase(
                 if (args.size == 1) {
                     Config.config.globalEnabled = false
                     Config.save()
-                    sendMessage(sender, "$prefix$messageColor The global whitelist has been enabled!")
+                    sendMessage(sender, "$prefix$messageColor The global whitelist has been disabled!")
                 } else {
                     val server = instance.proxy.getServerInfo(args[1]).name
 
@@ -68,7 +68,7 @@ object Whitelist: CommandBase(
                     } else {
                         Config.config.serverEnabled[server] = false
                         Config.save()
-                        sendMessage(sender, "$prefix$messageColor The whitelist for $valueColor$server$messageColor has been enabled!")
+                        sendMessage(sender, "$prefix$messageColor The whitelist for $valueColor$server$messageColor has been disabled!")
                     }
                 }
 
@@ -96,7 +96,7 @@ object Whitelist: CommandBase(
                 if (args.size == 1) {
                     sendMessage(sender, "$prefix$messageColor Whitelist Status:")
                     sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.globalEnabled}")
-                    sendMessage(sender, "$prefix$messageColor Players whitelisted:")
+                    sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.config["__global__"]?.size ?: 0}):")
                     Whitelist.config["__global__"]?.forEach {
                         sendMessage(sender, "$valueColor- ${UUIDConverter.getNameFromUUID(it)} ($it)")
                     }
@@ -107,7 +107,7 @@ object Whitelist: CommandBase(
                     } else {
                         sendMessage(sender, "$prefix$messageColor Whitelist Status for $valueColor$server$messageColor:")
                         sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.serverEnabled[server]?: false}")
-                        sendMessage(sender, "$prefix$messageColor Players whitelisted:")
+                        sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.config[server]?.size ?: 0}):")
                         Whitelist.config[server]?.forEach {
                             sendMessage(sender, "$valueColor- ${UUIDConverter.getNameFromUUID(it)} ($it)")
                         }
@@ -196,7 +196,7 @@ object Whitelist: CommandBase(
                         arg = instance.proxy.players.map { it.name }.toMutableList()
                     }
                     2 -> {
-                        arg = instance.proxy.servers.map { it.value.name }.toMutableList()
+                        arg = instance.proxy.servers.values.map { it.name }.toMutableList()
                         arg.add("")
                     }
                 }
@@ -250,7 +250,7 @@ object Whitelist: CommandBase(
                         arg = instance.proxy.players.map { it.name }.toMutableList()
                     }
                     2 -> {
-                        arg = instance.proxy.servers.map { it.value.name }.toMutableList()
+                        arg = instance.proxy.servers.values.map { it.name }.toMutableList()
                         arg.add("")
                     }
                 }

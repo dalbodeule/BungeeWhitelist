@@ -54,7 +54,7 @@ open class SubCommand (
     open fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> { return mutableListOf() }
 
     fun sendMessage(sender: CommandSender, msg: String) {
-        val message = TextComponent(msg)
+        val message = TextComponent(msg.getColored)
         sender.sendMessage(message)
     }
 }
