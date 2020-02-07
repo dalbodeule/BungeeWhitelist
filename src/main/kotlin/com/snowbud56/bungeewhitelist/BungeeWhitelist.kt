@@ -1,6 +1,7 @@
 package com.snowbud56.bungeewhitelist
 
 import com.snowbud56.bungeewhitelist.config.Config
+import com.snowbud56.bungeewhitelist.config.Config.prefix
 import com.snowbud56.bungeewhitelist.config.UUIDCache
 import com.snowbud56.bungeewhitelist.config.Whitelist
 import com.snowbud56.bungeewhitelist.utils.getColored
@@ -16,7 +17,7 @@ class BungeeWhitelist : Plugin() {
     override fun onEnable() {
         instance = this
 
-        proxy.logger.info("${Config.config.prefix} BungeeWhitelist is enabled.".getColored)
+        proxy.logger.info("$prefix BungeeWhitelist is enabled.".getColored)
 
         Config.load()
         Whitelist.load()
@@ -37,6 +38,6 @@ class BungeeWhitelist : Plugin() {
         Whitelist.save()
         UUIDCache.save()
 
-        proxy.logger.info("${Config.config.prefix} BungeeWhitelist is disabled.".getColored)
+        proxy.logger.info("$prefix BungeeWhitelist is disabled.".getColored)
     }
 }

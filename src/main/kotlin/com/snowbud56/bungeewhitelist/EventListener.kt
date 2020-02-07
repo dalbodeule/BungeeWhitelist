@@ -20,9 +20,9 @@ object EventListener : Listener {
         val server = e.target.name
 
         if (
-            Config.config.serverEnabled[server] == true && !Whitelist.contains(server, p.uniqueId.toString())
+            Config.getServerStatus(server) && !Whitelist.contains(server, p.uniqueId.toString())
         ) {
-            p.sendMessage(TextComponent("&cKicked whilst connecting to $server: ${Config.config.kickMessage}".getColored))
+            p.sendMessage(TextComponent("&cKicked whilst connecting to $server: ${Config.kickMessage}".getColored))
             e.isCancelled = true
         } else {
             UUIDCache.addOrRename(p.uniqueId.toString(), p.name)
@@ -33,11 +33,11 @@ object EventListener : Listener {
     internal fun onNetworkJoin(e: LoginEvent) {
         val p: PendingConnection = e.connection
         if (
-            Config.config.globalEnabled && !Whitelist.contains("__global__", p.uniqueId.toString())
+            Config.globalEnabled && !Whitelist.contains("__global__", p.uniqueId.toString())
         ) {
             p.disconnect(
                 TextComponent(
-                    "&cKicked whilst connecting to BungeeCord:\n${Config.config.kickMessage}".getColored
+                    "&cKicked whilst connecting to BungeeCord:\n${Config.kickMessage}".getColored
                 )
             )
         } else {

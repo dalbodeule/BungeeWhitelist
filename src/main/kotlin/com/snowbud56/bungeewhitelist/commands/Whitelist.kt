@@ -2,10 +2,10 @@ package com.snowbud56.bungeewhitelist.commands
 
 import at.pcgamingfreaks.UUIDConverter
 import com.snowbud56.bungeewhitelist.BungeeWhitelist.Companion.instance
-import com.snowbud56.bungeewhitelist.commands.Whitelist.messageColor
-import com.snowbud56.bungeewhitelist.commands.Whitelist.prefix
-import com.snowbud56.bungeewhitelist.commands.Whitelist.valueColor
 import com.snowbud56.bungeewhitelist.config.Config
+import com.snowbud56.bungeewhitelist.config.Config.messageColor
+import com.snowbud56.bungeewhitelist.config.Config.prefix
+import com.snowbud56.bungeewhitelist.config.Config.valueColor
 import com.snowbud56.bungeewhitelist.config.UUIDCache
 import com.snowbud56.bungeewhitelist.config.Whitelist
 import net.md_5.bungee.api.CommandSender
@@ -22,7 +22,7 @@ object Whitelist: CommandBase(
         ) {
             override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
                 if (args.size == 1) {
-                    Config.config.globalEnabled = true
+                    Config.globalEnabled = true
                     Config.save()
                     sendMessage(sender, "$prefix$messageColor The global whitelist has been enabled!")
                 } else {
@@ -31,7 +31,7 @@ object Whitelist: CommandBase(
                     if (server == null) {
                         sendMessage(sender, "$prefix$messageColor That is not a server on the network!")
                     } else {
-                        Config.config.serverEnabled[server] = true
+                        Config.setServerStatus(server, true)
                         Config.save()
                         sendMessage(sender, "$prefix$messageColor The whitelist for $valueColor$server$messageColor has been enabled!")
                     }
@@ -58,7 +58,7 @@ object Whitelist: CommandBase(
         ) {
             override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
                 if (args.size == 1) {
-                    Config.config.globalEnabled = false
+                    Config.globalEnabled = false
                     Config.save()
                     sendMessage(sender, "$prefix$messageColor The global whitelist has been disabled!")
                 } else {
@@ -67,7 +67,7 @@ object Whitelist: CommandBase(
                     if (server == null) {
                         sendMessage(sender, "$prefix$messageColor That is not a server on the network!")
                     } else {
-                        Config.config.serverEnabled[server] = false
+                        Config.setServerStatus(server, false)
                         Config.save()
                         sendMessage(sender, "$prefix$messageColor The whitelist for $valueColor$server$messageColor has been disabled!")
                     }
@@ -96,7 +96,7 @@ object Whitelist: CommandBase(
 
                 if (args.size == 1) {
                     sendMessage(sender, "$prefix$messageColor Whitelist Status:")
-                    sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.globalEnabled}")
+                    sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.globalEnabled}")
                     sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.getServer("__global__").size}):")
                     Whitelist.getServer("__global__").forEach {
                         sendMessage(sender, "$valueColor- ${UUIDCache.get(it)} (${it})")
@@ -107,7 +107,7 @@ object Whitelist: CommandBase(
                         sendMessage(sender, "$prefix$messageColor That is not a server on the network!")
                     } else {
                         sendMessage(sender, "$prefix$messageColor Whitelist Status for $valueColor$server$messageColor:")
-                        sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.config.serverEnabled[server]?: false}")
+                        sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.getServerStatus(server)}")
                         sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.getServer(server).size}):")
                         Whitelist.getServer(server).forEach {
                             sendMessage(sender, "$valueColor- ${UUIDCache.get(it)} (${it})")
@@ -262,16 +262,41 @@ object Whitelist: CommandBase(
 
                 return arg
             }
+        },
+        object : SubCommand(
+            "removecache",
+            "Remove a player's UUID and Nickname from the UUID Cache.",
+            "<player>"
+        ) {
+            override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
+                val uuid = UUIDCache.getFromName(args[1])
+                if (uuid != null) {
+                    UUIDCache.remove(uuid)
+                    sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor from the UUID Cache!")
+                } else {
+                    sendMessage(sender, "$prefix$messageColor That player is not on the UUID Cache!")
+                }
+
+                return true
+            }
+
+            override fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> {
+                var arg = mutableListOf<String>()
+
+                when (args.size) {
+                    1 -> {
+                        arg = UUIDCache.getNames().toMutableList()
+                    }
+                }
+
+                return arg
+            }
         }
     ).associateBy { it.name }.toSortedMap(),
     "bungeewhitelist",
     "bungeewhitelist.use",
     arrayOf("whitelist", "wl")
 ) {
-    private val prefix = Config.config.prefix
-    private val messageColor = Config.config.messageColor
-    private val valueColor = Config.config.valueColor
-
     override fun onCommand(sender: CommandSender, args: Array<out String>) {
         if (args.isEmpty() || args[0] == "help" || !SubCommands.keys.contains(args[0])) {
             sendMessage(sender, "$prefix$messageColor Whitelist Commands")

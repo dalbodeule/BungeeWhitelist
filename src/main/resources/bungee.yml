@@ -1,9 +1,9 @@
 name: BungeeWhitelist
 version: @version@
 main: com.snowbud56.bungeewhitelist.BungeeWhitelist
+author: dalbodeule
 depend:
   - PCGF_PluginLib
-author: dalbodeule
 commands:
   bungeewhitelist:
     alias:
