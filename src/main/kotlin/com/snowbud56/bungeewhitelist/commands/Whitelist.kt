@@ -11,6 +11,7 @@ import com.snowbud56.bungeewhitelist.config.Whitelist
 import net.md_5.bungee.api.CommandSender
 import com.snowbud56.bungeewhitelist.utils.CommandBase
 import com.snowbud56.bungeewhitelist.utils.SubCommand
+import java.util.*
 
 
 object Whitelist: CommandBase(
@@ -21,7 +22,7 @@ object Whitelist: CommandBase(
             "[server]"
         ) {
             override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
-                if (args.size == 1) {
+                if (args.size == 1 || args[1] == "") {
                     Config.globalEnabled = true
                     Config.save()
                     sendMessage(sender, "$prefix$messageColor The global whitelist has been enabled!")
@@ -43,7 +44,7 @@ object Whitelist: CommandBase(
             override fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> {
                 var arg = mutableListOf<String>()
 
-                if (args.size == 1) {
+                if (args.size == 2) {
                     arg = instance.proxy.servers.keys.toMutableList()
                     arg.add("")
                 }
@@ -57,7 +58,7 @@ object Whitelist: CommandBase(
             "[server]"
         ) {
             override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
-                if (args.size == 1) {
+                if (args.size == 1 || args[1] == "") {
                     Config.globalEnabled = false
                     Config.save()
                     sendMessage(sender, "$prefix$messageColor The global whitelist has been disabled!")
@@ -79,7 +80,7 @@ object Whitelist: CommandBase(
             override fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> {
                 var arg = mutableListOf<String>()
 
-                if (args.size == 1) {
+                if (args.size == 2) {
                     arg = instance.proxy.servers.map { it.value.name }.toMutableList()
                     arg.add("")
                 }
@@ -94,7 +95,7 @@ object Whitelist: CommandBase(
         ) {
             override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
 
-                if (args.size == 1) {
+                if (args.size == 1 || args[1] == "") {
                     sendMessage(sender, "$prefix$messageColor Whitelist Status:")
                     sendMessage(sender, "$prefix$messageColor Toggled: $valueColor ${Config.globalEnabled}")
                     sendMessage(sender, "$prefix$messageColor Players whitelisted (${Whitelist.getServer("__global__").size}):")
@@ -121,7 +122,7 @@ object Whitelist: CommandBase(
             override fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> {
                 var arg = mutableListOf<String>()
 
-                if (args.size == 1) {
+                if (args.size == 2) {
                     arg = instance.proxy.servers.map { it.value.name }.toMutableList()
                     arg.add("")
                 }
@@ -191,12 +192,11 @@ object Whitelist: CommandBase(
                 var arg = mutableListOf<String>()
 
                 when (args.size) {
-                    1 -> {
+                    2 -> {
                         arg = instance.proxy.players.map { it.name }.toMutableList()
                     }
-                    2 -> {
+                    3 -> {
                         arg = instance.proxy.servers.values.map { it.name }.toMutableList()
-                        arg.add("")
                     }
                 }
 
@@ -214,9 +214,16 @@ object Whitelist: CommandBase(
                         return false
                     }
                     2 -> {
-                        val uuid = UUIDCache.getFromName(args[1])
+                        val uuid = UUIDCache.getFromName(args[1]) ?: if (instance.proxy.config.isOnlineMode) {
+                            UUIDConverter.getUUIDFromName(args[1], true, true, false)
+                        } else {
+                            UUIDConverter.getUUIDFromName(args[1], false, true)
+                        }
                         when {
-                            uuid == null || !Whitelist.contains("__global__", uuid) -> {
+                            uuid == null -> {
+                                sendMessage(sender, "$prefix$messageColor That player is not valid player!")
+                            }
+                            !Whitelist.contains("__global__", uuid) -> {
                                 sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
                             }
                             else -> {
@@ -230,10 +237,17 @@ object Whitelist: CommandBase(
                         if (server == null) {
                             sendMessage(sender, "$prefix$messageColor That isn't a server on the network!")
                         } else {
-                            val uuid = UUIDCache.getFromName(args[1])
+                            val uuid = UUIDCache.getFromName(args[1]) ?: if (instance.proxy.config.isOnlineMode) {
+                                UUIDConverter.getUUIDFromName(args[1], true, true, false)
+                            } else {
+                                UUIDConverter.getUUIDFromName(args[1], false, true)
+                            }
                             when {
-                                uuid == null || !Whitelist.contains(server, uuid) -> {
-                                    sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
+                                uuid == null -> {
+                                    sendMessage(sender, "$prefix$messageColor That player is not valid player!")
+                                }
+                                !Whitelist.contains(server, uuid) -> {
+                                    sendMessage(sender, "$prefix$messageColor That player is not on the $valueColor$server$messageColor whitelist!")
                                 }
                                 else -> {
                                     Whitelist.remove(server, uuid)
@@ -251,12 +265,76 @@ object Whitelist: CommandBase(
                 var arg = mutableListOf<String>()
 
                 when (args.size) {
-                    1 -> {
+                    2 -> {
                         arg = instance.proxy.players.map { it.name }.toMutableList()
                     }
-                    2 -> {
+                    3 -> {
                         arg = instance.proxy.servers.values.map { it.name }.toMutableList()
-                        arg.add("")
+                    }
+                }
+
+                return arg
+            }
+        },
+        object : SubCommand(
+            "forceremove",
+            "Remove a UUID from the whitelist. [optional server argument]",
+            "<UUID> [server]"
+        ) {
+            override fun commandExecutor(sender: CommandSender, args: Array<out String>): Boolean {
+                when (args.size) {
+                    1 -> {
+                        return false
+                    }
+                    2 -> {
+                        val uuid = UUID.fromString(args[1])
+                        when {
+                            uuid == null -> {
+                                sendMessage(sender, "$prefix$messageColor That player is not valid player!")
+                            }
+                            !Whitelist.contains("__global__", uuid.toString()) -> {
+                                sendMessage(sender, "$prefix$messageColor That player is not on the global whitelist!")
+                            }
+                            else -> {
+                                Whitelist.remove("__global__", uuid.toString())
+                                sendMessage(sender, "$prefix$messageColor Removed $valueColor$uuid$messageColor to the global whitelist!")
+                            }
+                        }
+                    }
+                    else -> {
+                        val server = instance.proxy.getServerInfo(args[2]).name
+                        if (server == null) {
+                            sendMessage(sender, "$prefix$messageColor That isn't a server on the network!")
+                        } else {
+                            val uuid = UUID.fromString(args[1])
+                            when {
+                                uuid == null -> {
+                                    sendMessage(sender, "$prefix$messageColor That player is not valid player!")
+                                }
+                                !Whitelist.contains(server, uuid.toString()) -> {
+                                    sendMessage(sender, "$prefix$messageColor That player is not on the $valueColor$server$messageColor whitelist!")
+                                }
+                                else -> {
+                                    Whitelist.remove(server, uuid.toString())
+                                    sendMessage(sender, "$prefix$messageColor Removed $valueColor$uuid$messageColor from the $valueColor$server$messageColor whitelist!")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return true
+            }
+
+            override fun tabCompleter(sender: CommandSender, args: Array<out String>): MutableList<String> {
+                var arg = mutableListOf<String>()
+
+                when (args.size) {
+                    2 -> {
+                        arg = UUIDCache.data.keys.toMutableList()
+                    }
+                    3 -> {
+                        arg = instance.proxy.servers.values.map { it.name }.toMutableList()
                     }
                 }
 
@@ -272,7 +350,7 @@ object Whitelist: CommandBase(
                 val uuid = UUIDCache.getFromName(args[1])
                 if (uuid != null) {
                     UUIDCache.remove(uuid)
-                    sendMessage(sender, "$prefix$messageColor Removed $valueColor${args[1]} ($uuid)$messageColor from the UUID Cache!")
+                    sendMessage(sender, "$prefix$messageColor Removed $valueColor$uuid$messageColor from the UUID Cache!")
                 } else {
                     sendMessage(sender, "$prefix$messageColor That player is not on the UUID Cache!")
                 }
